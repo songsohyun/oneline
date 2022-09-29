@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper">
+
+	<resultMap type="map" id="fileList">
+		<result column="file_seq" property="fileSeq"/>
+		<result column="real_name" property="realName"/>
+		<result column="save_name" property="saveName"/>
+		<result column="reg_date" property="regDate"/>
+		<result column="save_path" property="savePath"/>
+		<result column="list_seq" property="listSeq"/>
+	</resultMap>
+
+	<resultMap type="map" id="maplist">
+		<result column="seq" property="seq"/>
+		<result column="mem_id" property="memId"/>
+		<result column="mem_name" property="memName"/>
+		<result column="board_subject" property="boardSubject"/>
+		<result column="board_content" property="boardContent"/>
+		<result column="reg_date" property="regDate"/>
+		<result column="upt_date" property="uptDate"/>
+		<result column="view_cnt" property="viewCnt"/>
+		<result column="useyn" property="useYn"/>
+	</resultMap>
+
+	<!--  
+	<select id="list" parameterType="map" resultMap="maplist">
+		select
+			seq
+			,mem_id
+			,mem_name
+			,board_subject
+			,board_content
+			,reg_date
+			,upt_date
+			,view_cnt
+		from board_study
+	   order by seq desc
+	</select>
+	-->
+	
+	<select id="list" parameterType="map" resultMap="maplist">
+		select n.seq, n.mem_id, n.mem_name, n.board_subject, n.board_content, n.reg_date, n.upt_date, n.view_cnt
+		  from (select
+				       row_number() over(order by seq desc) as rn
+					  ,seq
+					  ,mem_id
+					  ,mem_name
+					  ,board_subject
+					  ,board_content
+					  ,reg_date
+					  ,upt_date
+					  ,view_cnt
+			   	 from board_study) n
+	     where n.rn between #{beginRecord} and #{endRecord}
+	</select>
+	
+	<insert id="insertBoard" parameterType="map">
+		<selectKey keyProperty="seq" resultType="int" order="AFTER">
+			select max(seq)
+			  from board_study
+		</selectKey>
+		insert into board_study
+			(seq, mem_id, mem_name, board_subject, board_content, reg_date, view_cnt) 
+		values
+			((select nvl(max(seq), 0) + 1 from board_study), #{memId}, #{memName}, #{boardSubject}, #{boardContent}, SYSDATE, '0')
+	</insert>
+	
+	<select id="selectBoardBySeq" parameterType="int" resultMap="maplist">
+		select
+			seq
+			,mem_id
+			,mem_name
+			,board_subject
+			,board_content
+			,reg_date
+			,upt_date
+			,view_cnt
+		from board_study
+	   where seq = #{seq}
+	</select>
+	 
+	<select id="selectFileAttachesBySeq" parameterType="int" resultMap="fileList">
+		select 
+			file_seq
+			,real_name
+			,save_name
+			,reg_date
+			,save_path
+			,list_seq
+		from file_study_table
+	   where list_seq = #{seqNum} 
+	</select>
+
+	<select id="selectFileAttachBySeq" parameterType="int" resultMap="fileList">
+		select 
+			file_seq
+			,real_name
+			,save_name
+			,reg_date
+			,save_path
+			,list_seq
+		from file_study_table
+	   where file_seq = #{fileSeq} 
+	</select>
+
+	<update id="updateBoardBySeq" parameterType="map">
+		update board_study
+		   set mem_id = #{memId}
+		      ,mem_name = #{memName}
+		      ,board_subject = #{boardSubject}
+		      ,board_content = #{boardContent}
+		      ,upt_date = sysdate
+		 where seq = #{seq}
+	</update>
+	
+	<delete id="deleteBoardsBySeq" parameterType="int">
+		delete 
+		  from board_study
+		 where seq in (
+			<foreach collection="array" item="item" separator=",">
+				#{item}
+			</foreach>
+		 )
+	</delete>
+	
+	<!--  
+	<select id="selectBoardSearch" parameterType="map" resultMap="maplist">
+		select
+			seq
+			,mem_id
+			,mem_name
+			,board_subject
+			,board_content
+			,reg_date
+			,upt_date
+			,view_cnt
+		from board_study
+	   where 1 = 1
+	   <choose>
+		   	<when test="column == 'MEM_NAME'" >
+		   		AND MEM_NAME like '%' || #{query} || '%'
+		   	</when>
+		   	<when test="column == 'BOARD_SUBJECT'">
+		   		AND BOARD_SUBJECT like '%' || #{query} || '%'
+		   	</when>
+		   	<when test="column == 'BOARD_SUB_CON'">
+		   		AND (BOARD_SUBJECT like '%' || #{query} || '%' OR BOARD_CONTENT like '%' || #{query} || '%')
+		   	</when>
+	   </choose>	 
+	   
+	   <if test="startDay != '' and endDay != ''">
+	   		AND TO_CHAR(REG_DATE, 'YYYY-MM-DD') BETWEEN #{startDay} AND #{endDay}
+	   </if> 		
+
+	   order by seq desc		
+	</select>
+	-->
+	
+	<select id="selectBoardSearch" parameterType="map" resultMap="maplist">
+		select n.seq, n.mem_id, n.mem_name, n.board_subject, n.board_content, n.reg_date, n.upt_date, n.view_cnt
+		  from (select
+		  				row_number() over(order by seq desc) as rn
+						,seq
+						,mem_id
+						,mem_name
+						,board_subject
+						,board_content
+						,reg_date
+						,upt_date
+						,view_cnt
+					from board_study
+				   where 1 = 1
+				   <choose>
+					   	<when test="column == 'MEM_NAME'" >
+					   		AND MEM_NAME like '%' || #{query} || '%'
+					   	</when>
+					   	<when test="column == 'BOARD_SUBJECT'">
+					   		AND BOARD_SUBJECT like '%' || #{query} || '%'
+					   	</when>
+					   	<when test="column == 'BOARD_SUB_CON'">
+					   		AND (BOARD_SUBJECT like '%' || #{query} || '%' OR BOARD_CONTENT like '%' || #{query} || '%')
+					   	</when>
+				   </choose>	 
+				   
+				   <if test="startDay != '' and endDay != ''">
+				   		AND TO_CHAR(REG_DATE, 'YYYY-MM-DD') BETWEEN #{startDay} AND #{endDay}
+				   </if>) n
+		where n.rn between #{beginRecord} and #{endRecord}
+	</select>
+	
+	<select id="selectTotalRecord" resultType="long">
+		select count(seq)
+		  from board_study
+	</select>
+	
+	<select id="selectFindCount" parameterType="map" resultType="long">
+		select count(n.seq)
+		  from (select
+						seq
+						,mem_id
+						,mem_name
+						,board_subject
+						,board_content
+						,reg_date
+						,upt_date
+						,view_cnt
+					from board_study
+				   where 1 = 1
+				   <choose>
+					   	<when test="column == 'MEM_NAME'" >
+					   		AND MEM_NAME like '%' || #{query} || '%'
+					   	</when>
+					   	<when test="column == 'BOARD_SUBJECT'">
+					   		AND BOARD_SUBJECT like '%' || #{query} || '%'
+					   	</when>
+					   	<when test="column == 'BOARD_SUB_CON'">
+					   		AND (BOARD_SUBJECT like '%' || #{query} || '%' OR BOARD_CONTENT like '%' || #{query} || '%')
+					   	</when>
+				   </choose>	 
+				   
+				   <if test="startDay != '' and endDay != ''">
+				   		AND TO_CHAR(REG_DATE, 'YYYY-MM-DD') BETWEEN #{startDay} AND #{endDay}
+				   </if>) n
+	</select>
+	
+	<!-- 파일 첨부 -->
+	<insert id="insertAddFileAttachesBySeq" parameterType="map">
+		insert into file_study_table
+		values
+			((select nvl(max(file_seq), 0) + 1 from file_study_table) ,#{realName}, #{saveName}, SYSDATE, #{savePath}, #{listSeq})
+	</insert>	
+	
+	<!-- 마이플랫폼 전체조회-->
+	<select id="selectMiplatList" resultMap="maplist">
+		select
+			seq
+			,mem_name
+			,mem_id
+			,board_subject
+			,board_content
+			,reg_date
+			,upt_date
+			,view_cnt
+			,useyn
+	     from board_study
+	    order by seq desc
+	</select>
+	
+	<!-- 마이플랫폼 검색조회 -->
+	<select id="selectMiplatSearch" parameterType="map" resultMap="maplist">
+		select
+			seq
+			,mem_name
+			,mem_id
+			,board_subject
+			,board_content
+			,reg_date
+			,upt_date
+			,view_cnt
+			,useyn
+	     from board_study
+				   <choose>
+					   	<when test="column == 'MEM_NAME'" >
+					   		AND MEM_NAME like '%' || #{query} || '%'
+					   	</when>
+					   	<when test="column == 'BOARD_SUBJECT'">
+					   		AND BOARD_SUBJECT like '%' || #{query} || '%'
+					   	</when>
+					   	<when test="column == 'BOARD_SUB_CON'">
+					   		AND (BOARD_SUBJECT like '%' || #{query} || '%' OR BOARD_CONTENT like '%' || #{query} || '%')
+					   	</when>
+				   </choose>	 
+				   
+				   <if test="startDay != '' and endDay != ''">
+				   		AND TO_CHAR(REG_DATE, 'YYYY-MM-DD') BETWEEN #{startDay} AND #{endDay}
+				   </if>) n
+		order by seq desc
+	</select>
+	
+</mapper>

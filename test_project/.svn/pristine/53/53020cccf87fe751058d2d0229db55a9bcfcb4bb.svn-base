@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 맵핑될 DAO 인터페이스의 Full name 을 줍니다. -->
+
+<mapper namespace="com.study.start.mipl.dao.MiplDao">
+
+<select id="selectList" resultType="map">
+select
+    SEQ
+    ,MEM_ID
+    ,MEM_NAME
+    ,BOARD_SUBJECT
+    ,BOARD_CONTENT
+    ,REG_DATE
+    ,nvl(UPT_DATE, sysdate) UPT_DATE
+    ,nvl(VIEW_CNT, 0) VIEW_CNT
+from
+    BOARD_STUDY
+</select>
+
+<select id="llllllllll" resultType="map">
+lllllll
+</select>
+</mapper>
