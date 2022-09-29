@@ -1,10 +1,7 @@
 package com.approval.sh1.controller;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -12,7 +9,6 @@ import javax.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -62,8 +58,6 @@ public class ApprovalController {
 		
 		map.put("memId", member.get("memId"));
 		map.put("memRank", member.get("memRank"));
-		
-		System.out.println(map);
 		
 		if(map.get("column") == null) {
 			map.put("column", "");
@@ -306,8 +300,6 @@ public class ApprovalController {
 		map.put("memRank", member.get("memRank"));
 		
 		List<Map<String, Object>> list = approvalService.list(map);
-		
-		System.out.println(list);
 		
 		return list;
 	}
