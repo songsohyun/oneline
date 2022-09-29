@@ -1,8 +1,0 @@
-package com.ol.ex03.util;
-
-public class MyFileUtils {
-	
-	// 파일명을 UUID로 변환
-	
-
-}
